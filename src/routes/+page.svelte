@@ -18,11 +18,20 @@
 			[0, 0],
 		],
 		game: [0, 0],
+		setWinners: [],
 	}
 
 	const resetGameScore = () => {
 		match.game[0] = 0
 		match.game[1] = 0
+	}
+
+	const checkMatchWinner = () => {
+		if (match.set < 2) return
+    if (match.setWinners.every(x => x === 0)) console.log("Player 1 wins")
+    if (match.setWinners.every(x => x === 1)) console.log("Player 2 wins")
+    if (match.setWinners[2] === 0) console.log("Player 1 wins")
+    if (match.setWinners[2] === 1) console.log("Player 2 wins")
 	}
 
 	const handleSet = winner => {
@@ -32,6 +41,8 @@
 			match.sets[match.set][loser] < match.sets[match.set][winner] + 1
 		) {
 			match.set++
+			match.setWinners.push(winner)
+			checkMatchWinner()
 		}
 	}
 
@@ -70,8 +81,6 @@
 	}
 </script>
 
-<pre>{JSON.stringify(match, null, 2)}</pre>
-
 <div class="scoreboard">
 	<div></div>
 	<div>Set 1</div>
@@ -96,6 +105,8 @@
 	<button on:click={() => handleClick('player-1')}>Player 1</button>
 	<button on:click={() => handleClick('player-2')}>Player 2</button>
 </div>
+
+<pre>{JSON.stringify(match, null, 2)}</pre>
 
 <style>
 	:root {
