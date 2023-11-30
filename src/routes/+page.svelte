@@ -12,7 +12,7 @@
 		players: ['Player 1', 'Player 2'],
 		set: 0,
 		sets: [
-			[0, 0],
+			[6, 5],
 			[0, 0],
 			[0, 0],
 		],
@@ -30,10 +30,20 @@
 
 	const checkMatchWinner = () => {
 		if (matchState.set < 2) return
-		if (matchState.setWinners[2] === 0) matchState.matchWinner = matchState.players[0]
-		if (matchState.setWinners[2] === 1) matchState.matchWinner = matchState.players[1]
-		if (matchState.setWinners.every(x => x === 0)) matchState.matchWinner = matchState.players[0]
-		if (matchState.setWinners.every(x => x === 1)) matchState.matchWinner = matchState.players[1]
+
+		const player1 = 0
+		const player2 = 1
+
+		const is3rdSetWinner = x => matchState.setWinners[2] === x
+		const isWonFirstTwoSets = y => matchState.setWinners.every(x => x === y)
+
+		const setMatchWinner = x => {
+			if (is3rdSetWinner(x) || isWonFirstTwoSets(x)) {
+				matchState.matchWinner = matchState.players[x]
+			}
+		}
+
+		;[player1, player2].forEach(setMatchWinner)
 	}
 
 	const scoreTiebreak = x => {
@@ -41,7 +51,7 @@
 		const loser = winner === 0 ? 1 : 0
 
 		matchState.isTiebreak = true
-		matchState.tiebreak[x]++
+		matchState.tiebreak[winner]++
 
 		if (
 			matchState.tiebreak[winner] >= 7 &&
@@ -50,8 +60,8 @@
 			matchState.sets[matchState.set][winner]++
 			matchState.set++
 			matchState.setWinners.push(winner)
-			checkMatchWinner()
 			matchState.isTiebreak = false
+			checkMatchWinner()
 		}
 	}
 
@@ -63,9 +73,11 @@
 		const loser = winner === 0 ? 1 : 0
 
 		const isWinsBy7 =
-			matchState.sets[matchState.set][winner] === 7 && matchState.sets[matchState.set][loser] <= 5
+			matchState.sets[matchState.set][winner] === 7 &&
+			matchState.sets[matchState.set][loser] <= 5
 		const isWinsBy6 =
-			matchState.sets[matchState.set][winner] === 6 && matchState.sets[matchState.set][loser] <= 4
+			matchState.sets[matchState.set][winner] === 6 &&
+			matchState.sets[matchState.set][loser] <= 4
 
 		if (isWinsBy7 || isWinsBy6) {
 			matchState.set++
@@ -75,7 +87,7 @@
 	}
 
 	const scoreGame = x => {
-		const isDeuce = matchState.game[0] === 40 && matchState.game[1] === 40
+		const isDeuce = matchState.game.every(x => x === 40)
 		const isAd = matchState.game.some(x => x === 'Ad')
 		const winner = x === 0 ? 0 : 1
 
@@ -91,19 +103,25 @@
 			isPlayer1Ad && winner === 1 && (matchState.game[0] = 40)
 			isPlayer2Ad && winner === 0 && (matchState.game[1] = 40)
 
-			isPlayer1Ad && winner === 0 && ++matchState.sets[matchState.set][0] && resetGameScore()
-			isPlayer2Ad && winner === 1 && ++matchState.sets[matchState.set][1] && resetGameScore()
+			isPlayer1Ad &&
+				winner === 0 &&
+				++matchState.sets[matchState.set][0] &&
+				resetGameScore()
+			isPlayer2Ad &&
+				winner === 1 &&
+				++matchState.sets[matchState.set][1] &&
+				resetGameScore()
 			return
 		}
 
 		const lastGameScore = matchState.game[winner]
 
-		matchState.game[winner] = gamePointsMappings.get(lastGameScore)
-
 		if (lastGameScore === 40) {
 			++matchState.sets[matchState.set][winner]
 			resetGameScore()
 		}
+		
+		matchState.game[winner] = gamePointsMappings.get(lastGameScore)
 
 		scoreSet(winner)
 	}
@@ -158,8 +176,12 @@
 		</div>
 
 		<div>
-			<button on:click={() => handleClick(0)} disabled={matchState.matchWinner}>Player 1</button>
-			<button on:click={() => handleClick(1)} disabled={matchState.matchWinner}>Player 2</button>
+			<button on:click={() => handleClick(0)} disabled={matchState.matchWinner}
+				>Player 1</button
+			>
+			<button on:click={() => handleClick(1)} disabled={matchState.matchWinner}
+				>Player 2</button
+			>
 		</div>
 
 		{#if matchState.matchWinner}
