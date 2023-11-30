@@ -35,10 +35,12 @@
 	}
 
 	const handleSet = winner => {
-		const loser = winner === 'player-1' ? 1 : 0
+		const loser = winner === 0 ? 1 : 0
 		if (
-			match.sets[match.set][winner] >= 6 &&
-			match.sets[match.set][loser] < match.sets[match.set][winner] + 1
+			(match.sets[match.set][winner] === 7 &&
+			match.sets[match.set][loser] <= 5) ||
+			(match.sets[match.set][winner] === 6 &&
+			match.sets[match.set][loser] <= 4)
 		) {
 			match.set++
 			match.setWinners.push(winner)
@@ -106,7 +108,10 @@
 	<button on:click={() => handleClick('player-2')}>Player 2</button>
 </div>
 
-<pre>{JSON.stringify(match, null, 2)}</pre>
+<details open>
+	<summary>Match State</summary>
+	<pre>{JSON.stringify(match, null, 2)}</pre>
+</details>
 
 <style>
 	:root {
