@@ -1,14 +1,14 @@
 <script>
 	const scoreboardHeadings = ['', 'Set 1', 'Set 2', 'Set 3', ['TB', 'Game']]
 
-	const gamePointsMap = new Map([
+	const gamePointsMappings = new Map([
 		[0, 15],
 		[15, 30],
 		[30, 40],
 		[40, 0],
 	])
 
-	const match = {
+	const matchState = {
 		players: ['Player 1', 'Player 2'],
 		set: 0,
 		sets: [
@@ -24,180 +24,194 @@
 	}
 
 	const resetGameScore = () => {
-		match.game = [0, 0]
-		match.tiebreak = [0, 0]
+		matchState.game = [0, 0]
+		matchState.tiebreak = [0, 0]
 	}
 
 	const checkMatchWinner = () => {
-		if (match.set < 2) return
-		if (match.setWinners.every(x => x === 0)) match.matchWinner = match.players[0]
-		if (match.setWinners.every(x => x === 1)) match.matchWinner = match.players[1]
-		if (match.setWinners[2] === 0) match.matchWinner = match.players[0]
-		if (match.setWinners[2] === 1) match.matchWinner = match.players[1]
+		if (matchState.set < 2) return
+		if (matchState.setWinners[2] === 0) matchState.matchWinner = matchState.players[0]
+		if (matchState.setWinners[2] === 1) matchState.matchWinner = matchState.players[1]
+		if (matchState.setWinners.every(x => x === 0)) matchState.matchWinner = matchState.players[0]
+		if (matchState.setWinners.every(x => x === 1)) matchState.matchWinner = matchState.players[1]
 	}
 
-	const handleTiebreak = x => {
+	const scoreTiebreak = x => {
 		const winner = x
 		const loser = winner === 0 ? 1 : 0
 
-		match.isTiebreak = true
-		match.tiebreak[x]++
+		matchState.isTiebreak = true
+		matchState.tiebreak[x]++
 
 		if (
-			match.tiebreak[winner] >= 7 &&
-			match.tiebreak[loser] <= match.tiebreak[winner] - 2
+			matchState.tiebreak[winner] >= 7 &&
+			matchState.tiebreak[loser] <= matchState.tiebreak[winner] - 2
 		) {
-			match.sets[match.set][winner]++
-			match.set++
-			match.setWinners.push(winner)
+			matchState.sets[matchState.set][winner]++
+			matchState.set++
+			matchState.setWinners.push(winner)
 			checkMatchWinner()
-			match.isTiebreak = false
+			matchState.isTiebreak = false
 		}
 	}
 
-	const handleSet = winner => {
+	const scoreSet = x => {
+		const isTiebreak = matchState.sets[matchState.set].every(x => x === 6)
+		if (isTiebreak) scoreTiebreak()
+
+		const winner = x
 		const loser = winner === 0 ? 1 : 0
-		if (match.sets[match.set].every(x => x === 6)) {
-			console.log('Tiebreak!')
-			handleTiebreak()
-		}
 
-		if (
-			(match.sets[match.set][winner] === 7 && match.sets[match.set][loser] <= 5) ||
-			(match.sets[match.set][winner] === 6 && match.sets[match.set][loser] <= 4)
-		) {
-			match.set++
-			match.setWinners.push(winner)
+		const isWinsBy7 =
+			matchState.sets[matchState.set][winner] === 7 && matchState.sets[matchState.set][loser] <= 5
+		const isWinsBy6 =
+			matchState.sets[matchState.set][winner] === 6 && matchState.sets[matchState.set][loser] <= 4
+
+		if (isWinsBy7 || isWinsBy6) {
+			matchState.set++
+			matchState.setWinners.push(winner)
 			checkMatchWinner()
 		}
 	}
 
-	const handleClick = x => {
-		if (match.isTiebreak) {
-			handleTiebreak(x)
-			return
-		}
-
-		const isDeuce = match.game[0] === 40 && match.game[1] === 40
-		const isAd = match.game.some(x => x === 'Ad')
+	const scoreGame = x => {
+		const isDeuce = matchState.game[0] === 40 && matchState.game[1] === 40
+		const isAd = matchState.game.some(x => x === 'Ad')
 		const winner = x === 0 ? 0 : 1
 
 		if (isDeuce) {
-			match.game[winner] = 'Ad'
+			matchState.game[winner] = 'Ad'
 			return
 		}
 
 		if (isAd) {
-			const isPlayer1Ad = match.game[0] === 'Ad'
-			const isPlayer2Ad = match.game[1] === 'Ad'
+			const isPlayer1Ad = matchState.game[0] === 'Ad'
+			const isPlayer2Ad = matchState.game[1] === 'Ad'
 
-			isPlayer1Ad && winner === 1 && (match.game[0] = 40)
-			isPlayer2Ad && winner === 0 && (match.game[1] = 40)
+			isPlayer1Ad && winner === 1 && (matchState.game[0] = 40)
+			isPlayer2Ad && winner === 0 && (matchState.game[1] = 40)
 
-			isPlayer1Ad && winner === 0 && ++match.sets[match.set][0] && resetGameScore()
-			isPlayer2Ad && winner === 1 && ++match.sets[match.set][1] && resetGameScore()
+			isPlayer1Ad && winner === 0 && ++matchState.sets[matchState.set][0] && resetGameScore()
+			isPlayer2Ad && winner === 1 && ++matchState.sets[matchState.set][1] && resetGameScore()
 			return
 		}
 
-		const lastGameScore = match.game[winner]
+		const lastGameScore = matchState.game[winner]
 
-		match.game[winner] = gamePointsMap.get(lastGameScore)
+		matchState.game[winner] = gamePointsMappings.get(lastGameScore)
 
 		if (lastGameScore === 40) {
-			++match.sets[match.set][winner]
+			++matchState.sets[matchState.set][winner]
 			resetGameScore()
 		}
 
-		handleSet(winner)
+		scoreSet(winner)
+	}
+
+	const handleClick = x => {
+		if (matchState.isTiebreak) {
+			scoreTiebreak(x)
+			return
+		}
+
+		scoreGame(x)
 	}
 </script>
 
-<main>
-	<h1>JS Tennis 2024</h1>
+<div class="js-tennis">
+	<header>
+		<h1>JS Tennis 2🎾24</h1>
+	</header>
 
-	<div class="scoreboard">
-		{#each scoreboardHeadings as item, idx}
-			{#if idx === scoreboardHeadings.length - 1 && match.isTiebreak}
-				<div>{item[0]}</div>
-			{:else if idx === scoreboardHeadings.length - 1 && !match.isTiebreak}
-				<div>{item[1]}</div>
+	<main>
+		<div class="scoreboard">
+			{#each scoreboardHeadings as item, idx}
+				{@const isLastItem = idx === scoreboardHeadings.length - 1}
+				{#if isLastItem && matchState.isTiebreak}
+					<div>{item[0]}</div>
+				{:else if isLastItem && !matchState.isTiebreak}
+					<div>{item[1]}</div>
+				{:else}
+					<div>{item}</div>
+				{/if}
+			{/each}
+
+			<div>{matchState.players[0]}</div>
+			{#each matchState.sets as set}
+				<div>{set[0]}</div>
+			{/each}
+			{#if matchState.isTiebreak}
+				<div>{matchState.tiebreak[0]}</div>
 			{:else}
-				<div>{item}</div>
+				<div>{matchState.game[0]}</div>
 			{/if}
-		{/each}
 
-		<div>{match.players[0]}</div>
-		{#each match.sets as set}
-			<div>{set[0]}</div>
-		{/each}
-		{#if match.isTiebreak}
-			<div>{match.tiebreak[0]}</div>
-		{:else}
-			<div>{match.game[0]}</div>
+			<div>{matchState.players[1]}</div>
+			{#each matchState.sets as set}
+				<div>{set[1]}</div>
+			{/each}
+			{#if matchState.isTiebreak}
+				<div>{matchState.tiebreak[1]}</div>
+			{:else}
+				<div>{matchState.game[1]}</div>
+			{/if}
+		</div>
+
+		<div>
+			<button on:click={() => handleClick(0)} disabled={matchState.matchWinner}>Player 1</button>
+			<button on:click={() => handleClick(1)} disabled={matchState.matchWinner}>Player 2</button>
+		</div>
+
+		{#if matchState.matchWinner}
+			<p>{matchState.matchWinner} wins!</p>
 		{/if}
+	</main>
 
-		<div>{match.players[1]}</div>
-		{#each match.sets as set}
-			<div>{set[1]}</div>
-		{/each}
-		{#if match.isTiebreak}
-			<div>{match.tiebreak[1]}</div>
-		{:else}
-			<div>{match.game[1]}</div>
-		{/if}
-	</div>
-
-	<div class="buttons">
-		<button on:click={() => handleClick(0)}>Player 1</button>
-		<button on:click={() => handleClick(1)}>Player 2</button>
-	</div>
-
-	{#if match.matchWinner}
-		<p>{match.matchWinner} wins!</p>
-	{/if}
-</main>
-
-<footer>
-	<details open>
-		<summary>Match State</summary>
-		<pre>{JSON.stringify(match, null, 2)}</pre>
-	</details>
-</footer>
+	<footer>
+		<details>
+			<summary>Match State</summary>
+			<pre>{JSON.stringify(matchState, null, 2)}</pre>
+		</details>
+	</footer>
+</div>
 
 <style>
-	:root {
-		color-scheme: dark;
-	}
-
-	main {
+	.js-tennis {
 		display: grid;
 		gap: 1.5rem;
-		font-size: 1.5rem;
+		place-content: center;
 		text-align: center;
+		font-size: 1.5rem;
 
-		& .scoreboard {
-			max-width: 32rem;
+		& main {
 			display: grid;
-			grid-template-columns: repeat(5, 1fr);
-			gap: 1rem;
-			margin-inline: auto;
-			text-align: center;
+			gap: 1.5rem;
+
+			& .scoreboard {
+				max-width: 32rem;
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				margin-inline: auto;
+				gap: 1.5rem;
+			}
+
+			& button {
+				padding-block: 0.5rem;
+				padding-inline: 1rem;
+			}
 		}
 
-		& .buttons > * {
-			padding-block: 0.5rem;
-			padding-inline: 1rem;
-		}
-	}
+		& footer {
+			justify-self: self-start;
+			font-size: 1rem;
+			text-align: left;
 
-	footer {
-		font-size: 1rem;
+			& details {
+				margin-block: 1.5rem;
 
-		& details {
-			margin-block: 1.5rem;
-
-			& pre {
-				padding: 1.5rem;
+				& pre {
+					padding: 1.5rem;
+				}
 			}
 		}
 	}
