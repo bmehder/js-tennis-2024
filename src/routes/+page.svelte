@@ -1,7 +1,5 @@
 <script>
-	let isTiebreak = false
-
-	const players = ['Player 1', 'Player 2']
+	const scoreboardHeadings = ['', 'Set 1', 'Set 2', 'Set 3', ['TB', 'Game']]
 
 	const gamePointsMap = new Map([
 		[0, 15],
@@ -11,36 +9,38 @@
 	])
 
 	const match = {
+		players: ['Player 1', 'Player 2'],
 		set: 0,
 		sets: [
-			[5, 5],
+			[0, 0],
 			[0, 0],
 			[0, 0],
 		],
 		game: [0, 0],
+		isTiebreak: false,
 		tiebreak: [0, 0],
 		setWinners: [],
+		matchWinner: null,
 	}
 
 	const resetGameScore = () => {
-		match.game[0] = 0
-		match.game[1] = 0
+		match.game = [0, 0]
 		match.tiebreak = [0, 0]
 	}
 
 	const checkMatchWinner = () => {
 		if (match.set < 2) return
-		if (match.setWinners.every(x => x === 0)) console.log('Player 1 wins')
-		if (match.setWinners.every(x => x === 1)) console.log('Player 2 wins')
-		if (match.setWinners[2] === 0) console.log('Player 1 wins')
-		if (match.setWinners[2] === 1) console.log('Player 2 wins')
+		if (match.setWinners.every(x => x === 0)) match.matchWinner = match.players[0]
+		if (match.setWinners.every(x => x === 1)) match.matchWinner = match.players[1]
+		if (match.setWinners[2] === 0) match.matchWinner = match.players[0]
+		if (match.setWinners[2] === 1) match.matchWinner = match.players[1]
 	}
 
 	const handleTiebreak = x => {
 		const winner = x
 		const loser = winner === 0 ? 1 : 0
 
-		isTiebreak = true
+		match.isTiebreak = true
 		match.tiebreak[x]++
 
 		if (
@@ -51,7 +51,7 @@
 			match.set++
 			match.setWinners.push(winner)
 			checkMatchWinner()
-			isTiebreak = false
+			match.isTiebreak = false
 		}
 	}
 
@@ -73,7 +73,7 @@
 	}
 
 	const handleClick = x => {
-		if (isTiebreak) {
+		if (match.isTiebreak) {
 			handleTiebreak(x)
 			return
 		}
@@ -116,31 +116,31 @@
 	<h1>JS Tennis 2024</h1>
 
 	<div class="scoreboard">
-		<div></div>
-		<div>Set 1</div>
-		<div>Set 2</div>
-		<div>Set 3</div>
-		{#if isTiebreak}
-			<div>TB</div>
-		{:else}
-			<div>Game</div>
-		{/if}
+		{#each scoreboardHeadings as item, idx}
+			{#if idx === scoreboardHeadings.length - 1 && match.isTiebreak}
+				<div>{item[0]}</div>
+			{:else if idx === scoreboardHeadings.length - 1 && !match.isTiebreak}
+				<div>{item[1]}</div>
+			{:else}
+				<div>{item}</div>
+			{/if}
+		{/each}
 
-		<div>{players[0]}</div>
+		<div>{match.players[0]}</div>
 		{#each match.sets as set}
 			<div>{set[0]}</div>
 		{/each}
-		{#if isTiebreak}
+		{#if match.isTiebreak}
 			<div>{match.tiebreak[0]}</div>
 		{:else}
 			<div>{match.game[0]}</div>
 		{/if}
 
-		<div>{players[1]}</div>
+		<div>{match.players[1]}</div>
 		{#each match.sets as set}
 			<div>{set[1]}</div>
 		{/each}
-		{#if isTiebreak}
+		{#if match.isTiebreak}
 			<div>{match.tiebreak[1]}</div>
 		{:else}
 			<div>{match.game[1]}</div>
@@ -151,6 +151,10 @@
 		<button on:click={() => handleClick(0)}>Player 1</button>
 		<button on:click={() => handleClick(1)}>Player 2</button>
 	</div>
+
+	{#if match.matchWinner}
+		<p>{match.matchWinner} wins!</p>
+	{/if}
 </main>
 
 <footer>
@@ -168,6 +172,7 @@
 	main {
 		display: grid;
 		gap: 1.5rem;
+		font-size: 1.5rem;
 		text-align: center;
 
 		& .scoreboard {
@@ -190,7 +195,7 @@
 
 		& details {
 			margin-block: 1.5rem;
-			
+
 			& pre {
 				padding: 1.5rem;
 			}
