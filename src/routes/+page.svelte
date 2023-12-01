@@ -50,7 +50,7 @@
 		matchState.matchWinner = null
 	}
 
-	const checkMatchWinner = () => {
+	const scoreMatch = () => {
 		if (matchState.set < 2) return
 
 		const player1 = 0
@@ -84,7 +84,7 @@
 			matchState.set++
 			matchState.setWinners.push(winner)
 			matchState.isTiebreak = false
-			checkMatchWinner()
+			scoreMatch()
 		}
 	}
 
@@ -105,7 +105,7 @@
 		if (isWinsBy7 || isWinsBy6) {
 			matchState.set++
 			matchState.setWinners.push(winner)
-			checkMatchWinner()
+			scoreMatch()
 		}
 	}
 
@@ -283,7 +283,8 @@
 			text-align: left;
 
 			& details {
-				margin-block: 1.5rem;
+				margin-block-end: 1.5rem;
+				cursor: pointer;
 
 				& pre {
 					padding: 1.5rem;
