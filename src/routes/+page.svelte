@@ -265,6 +265,10 @@
 				& sup {
 					font-size: 70%;
 				}
+
+				& .won {
+					color: #008800;
+				}
 			}
 
 			& button {
@@ -285,10 +289,6 @@
 					padding: 1.5rem;
 				}
 			}
-		}
-
-		& .won {
-			color: gold;
 		}
 	}
 </style>
