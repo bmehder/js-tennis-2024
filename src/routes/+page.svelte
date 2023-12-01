@@ -12,20 +12,42 @@
 		players: ['Player 1', 'Player 2'],
 		set: 0,
 		sets: [
-			[6, 5],
+			[5, 6],
 			[0, 0],
 			[0, 0],
 		],
 		game: [0, 0],
 		isTiebreak: false,
-		tiebreak: [0, 0],
+		tiebreak: [
+			[0, 0],
+			[0, 0],
+			[0, 0],
+		],
 		setWinners: [],
 		matchWinner: null,
 	}
 
 	const resetGameScore = () => {
 		matchState.game = [0, 0]
-		matchState.tiebreak = [0, 0]
+	}
+
+	const resetMatch = () => {
+		matchState.players = ['Player 1', 'Player 2']
+		matchState.set = 0
+		matchState.sets = [
+			[0, 0],
+			[0, 0],
+			[0, 0],
+		]
+		matchState.game = [0, 0]
+		matchState.isTiebreak = false
+		matchState.tiebreak = [
+			[0, 0],
+			[0, 0],
+			[0, 0],
+		]
+		matchState.setWinners = []
+		matchState.matchWinner = null
 	}
 
 	const checkMatchWinner = () => {
@@ -51,11 +73,12 @@
 		const loser = winner === 0 ? 1 : 0
 
 		matchState.isTiebreak = true
-		matchState.tiebreak[winner]++
+		matchState.tiebreak[matchState.set][winner]++
 
 		if (
-			matchState.tiebreak[winner] >= 7 &&
-			matchState.tiebreak[loser] <= matchState.tiebreak[winner] - 2
+			matchState.tiebreak[matchState.set][winner] >= 7 &&
+			matchState.tiebreak[matchState.set][loser] <=
+				matchState.tiebreak[matchState.set][winner] - 2
 		) {
 			matchState.sets[matchState.set][winner]++
 			matchState.set++
@@ -120,7 +143,7 @@
 			++matchState.sets[matchState.set][winner]
 			resetGameScore()
 		}
-		
+
 		matchState.game[winner] = gamePointsMappings.get(lastGameScore)
 
 		scoreSet(winner)
@@ -155,37 +178,58 @@
 			{/each}
 
 			<div>{matchState.players[0]}</div>
-			{#each matchState.sets as set}
-				<div>{set[0]}</div>
+			{#each matchState.sets as set, idx}
+				{@const isSetTiebreak =
+					matchState.tiebreak[idx].some(x => x !== 0) &&
+					typeof matchState.setWinners[idx] === 'number'}
+				<div
+					class:won={set[0] > matchState.sets[idx][1] &&
+						typeof matchState.setWinners[idx] === 'number'}
+				>
+					{set[0]}
+					{#if isSetTiebreak}
+						<sup>{matchState.tiebreak[idx][0]}</sup>
+					{/if}
+				</div>
 			{/each}
 			{#if matchState.isTiebreak}
-				<div>{matchState.tiebreak[0]}</div>
+				<div>{matchState.tiebreak[matchState.set][0]}</div>
 			{:else}
 				<div>{matchState.game[0]}</div>
 			{/if}
 
 			<div>{matchState.players[1]}</div>
-			{#each matchState.sets as set}
-				<div>{set[1]}</div>
+			{#each matchState.sets as set, idx}
+				{@const isSetTiebreak =
+					matchState.tiebreak[idx].some(x => x !== 0) &&
+					typeof matchState.setWinners[idx] === 'number'}
+				<div
+					class:won={set[1] > matchState.sets[idx][0] &&
+						typeof matchState.setWinners[idx] === 'number'}
+				>
+					{set[1]}
+					{#if isSetTiebreak}
+						<sup>{matchState.tiebreak[idx][1]}</sup>
+					{/if}
+				</div>
 			{/each}
 			{#if matchState.isTiebreak}
-				<div>{matchState.tiebreak[1]}</div>
+				<div>{matchState.tiebreak[matchState.set][1]}</div>
 			{:else}
 				<div>{matchState.game[1]}</div>
 			{/if}
 		</div>
 
-		<div>
-			<button on:click={() => handleClick(0)} disabled={matchState.matchWinner}
-				>Player 1</button
-			>
-			<button on:click={() => handleClick(1)} disabled={matchState.matchWinner}
-				>Player 2</button
-			>
-		</div>
+		{#if !matchState.matchWinner}
+			<div>
+				<button on:click={() => handleClick(0)}>Player 1</button>
+				<button on:click={() => handleClick(1)}>Player 2</button>
+			</div>
+		{/if}
 
 		{#if matchState.matchWinner}
 			<p>{matchState.matchWinner} wins!</p>
+			<button on:click={resetMatch}>Start New Match</button>
 		{/if}
 	</main>
 
@@ -200,7 +244,7 @@
 <style>
 	.js-tennis {
 		display: grid;
-		gap: 1.5rem;
+		gap: 3rem;
 		place-content: center;
 		text-align: center;
 		font-size: 1.5rem;
@@ -210,11 +254,17 @@
 			gap: 1.5rem;
 
 			& .scoreboard {
-				max-width: 32rem;
+				max-width: 48rem;
 				display: grid;
 				grid-template-columns: repeat(5, 1fr);
 				margin-inline: auto;
 				gap: 1.5rem;
+				padding: 1.5rem;
+				border: 1px solid;
+
+				& sup {
+					font-size: 70%;
+				}
 			}
 
 			& button {
@@ -235,6 +285,10 @@
 					padding: 1.5rem;
 				}
 			}
+		}
+
+		& .won {
+			color: gold;
 		}
 	}
 </style>
