@@ -12,7 +12,7 @@
 		players: ['Player 1', 'Player 2'],
 		set: 0,
 		sets: [
-			[5, 6],
+			[0, 0],
 			[0, 0],
 			[0, 0],
 		],
