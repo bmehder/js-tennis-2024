@@ -8,6 +8,22 @@
 		[40, 0],
 	])
 
+	/** @typedef {number | string} NumberOrString */
+	/** @typedef {0 | 1} Winner */
+
+	/**
+	 * @typedef {Object} Match
+	 * @property {string[]} players
+	 * @property {number} set
+	 * @property {[number, number][]} sets
+	 * @property {[NumberOrString, NumberOrString]} game
+	 * @property {boolean} isTiebreak
+	 * @property {[number, number][]} tiebreak
+	 * @property {number[]} setWinners
+	 * @property {string | null} matchWinner
+	 */
+
+	/** @type {Match} */
 	const matchState = {
 		players: ['Player 1', 'Player 2'],
 		set: 0,
@@ -53,21 +69,28 @@
 	const scoreMatch = () => {
 		if (matchState.set < 2) return
 
+		/** @type {Winner} */
 		const player1 = 0
+		/** @type {Winner} */
 		const player2 = 1
 
+		/** @param {Winner} x */
 		const is3rdSetWinner = x => matchState.setWinners[2] === x
+		/** @param {Winner} y */
 		const isWonFirstTwoSets = y => matchState.setWinners.every(x => x === y)
 
+		/** @param {Winner} x */
 		const setMatchWinner = x => {
+			console.log(x)
 			if (is3rdSetWinner(x) || isWonFirstTwoSets(x)) {
 				matchState.matchWinner = matchState.players[x]
 			}
 		}
 
-		;[player1, player2].forEach(setMatchWinner)
+		;[player1, player2].forEach(x => setMatchWinner(x))
 	}
 
+	/** @param {Winner} x */
 	const scoreTiebreak = x => {
 		const winner = x
 		const loser = winner === 0 ? 1 : 0
@@ -88,9 +111,13 @@
 		}
 	}
 
+	/** @param {Winner} x */
 	const scoreSet = x => {
 		const isTiebreak = matchState.sets[matchState.set].every(x => x === 6)
-		if (isTiebreak) scoreTiebreak()
+		if (isTiebreak) {
+			matchState.isTiebreak = true
+			return
+		}
 
 		const winner = x
 		const loser = winner === 0 ? 1 : 0
@@ -109,9 +136,12 @@
 		}
 	}
 
+	/** @param {Winner} x */
 	const scoreGame = x => {
 		const isDeuce = matchState.game.every(x => x === 40)
+
 		const isAd = matchState.game.some(x => x === 'Ad')
+		/** @type {Winner} x */
 		const winner = x === 0 ? 0 : 1
 
 		if (isDeuce) {
@@ -137,18 +167,19 @@
 			return
 		}
 
-		const lastGameScore = matchState.game[winner]
+		const lastGameScore = +matchState.game[winner]
 
 		if (lastGameScore === 40) {
 			++matchState.sets[matchState.set][winner]
 			resetGameScore()
 		}
 
-		matchState.game[winner] = gamePointsMappings.get(lastGameScore)
+		matchState.game[winner] = gamePointsMappings.get(lastGameScore) ?? 0
 
 		scoreSet(winner)
 	}
 
+	/** @param {Winner} x */
 	const handleClick = x => {
 		if (matchState.isTiebreak) {
 			scoreTiebreak(x)
