@@ -1,7 +1,7 @@
 <script>
-	const scoreboardHeadings = ['', 'Set 1', 'Set 2', 'Set 3', ['TB', 'Game']]
+	export const scoreboardHeadings = ['', 'Set 1', 'Set 2', 'Set 3', ['TB', 'Game']]
 
-	const gamePointsMappings = new Map([
+	export const gamePointsMappings = new Map([
 		[0, 15],
 		[15, 30],
 		[30, 40],
@@ -9,6 +9,7 @@
 	])
 
 	/** @typedef {number | string} NumberOrString */
+	
 	/** @typedef {0 | 1} Winner */
 
 	/**
@@ -306,19 +307,19 @@
 				padding-block: 0.5rem;
 				padding-inline: 1rem;
 			}
-		}
 
-		& footer {
-			justify-self: self-start;
-			font-size: 1rem;
-			text-align: left;
+			& footer {
+				justify-self: self-start;
+				font-size: 1rem;
+				text-align: left;
 
-			& details {
-				margin-block-end: 1.5rem;
-				cursor: pointer;
+				& details {
+					margin-block-end: 1.5rem;
+					cursor: pointer;
 
-				& pre {
-					padding: 1.5rem;
+					& pre {
+						padding: 1.5rem;
+					}
 				}
 			}
 		}
